@@ -1,12 +1,12 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
-  PDFViewer,
+  PDFDownloadLink,
   Document,
   Page,
   Text,
   View,
   StyleSheet,
-  Image, // Import Image component
+  Image,
 } from "@react-pdf/renderer";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 20,
     right: 20,
-    width: 100, // Adjust width as needed
+    width: 100,
     height: "auto",
   },
   table: {
@@ -54,14 +54,9 @@ const styles = StyleSheet.create({
 const InvoiceDocument = ({ file }) => (
   <Document>
     <Page size='A4' style={styles.page}>
-      <Image
-        src={logo} // Replace with the path to your logo
-        style={styles.logo}
-      />
+      <Image src={logo} style={styles.logo} />
       <View style={styles.section}>
         <Text style={styles.invoice}>LPS Consulting</Text>
-        {/* <Text>Votre Adresse</Text>
-        <Text>Votre Numéro de Téléphone</Text> */}
       </View>
 
       <View style={styles.section}>
@@ -119,13 +114,29 @@ const InvoiceDocument = ({ file }) => (
 
 // FileDetailsModal component
 const FileDetailsModal = ({ isOpen, toggleModal, file }) => {
+  const downloadLinkRef = useRef(null);
+
+  useEffect(() => {
+    if (isOpen && downloadLinkRef.current) {
+      downloadLinkRef.current.click();
+    }
+  }, [isOpen]);
+
   return (
     <Modal isOpen={isOpen} toggle={toggleModal}>
       <ModalHeader toggle={toggleModal}>Facture</ModalHeader>
       <ModalBody>
-        <PDFViewer width='100%' height='500px'>
-          <InvoiceDocument file={file} />
-        </PDFViewer>
+        <Button color='primary'>
+          <PDFDownloadLink
+            document={<InvoiceDocument file={file} />}
+            fileName={`invoice_${file.assignedTo.lastName}.pdf`}
+            ref={downloadLinkRef} // Attach ref here
+            className='text-decoration-none text-white'>
+            {({ loading }) =>
+              loading ? "Loading document..." : "Télércharger"
+            }
+          </PDFDownloadLink>
+        </Button>
       </ModalBody>
       <ModalFooter>
         <Button color='secondary' onClick={toggleModal}>
